@@ -1,0 +1,47 @@
+{% extends 'admins/adminlayout.html' %}
+{% load static %}
+
+{% block title %}
+<title>Category</title>
+{% endblock %}
+
+{% block main_content %}
+<div class="container mt-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-6">
+            
+            {% for msg in messages %}
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+            <div class="alert alert-success">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            <table class="table table-bordered border-dark table-striped">
+                <tr>
+                    <th>Category Name</th>
+                    <th>Action</th>
+                </tr>
+                {% for c in category %}
+                <tr>
+                    <td>{{c.category_name}}</td>
+                    <td>
+                        <a href="/products/updatecategory/{{c.id}}" class="btn btn-primary">Edit</a>
+                        <a href="/products/deletecategory/{{c.id}}" class="btn btn-danger" onclick="return confirm('Are you sure want to delete this category?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

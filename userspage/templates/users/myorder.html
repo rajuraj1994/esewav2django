@@ -1,0 +1,55 @@
+{% extends 'layouts.html' %}
+{% load static %}
+{% block title %}
+<title>My Order</title>
+{% endblock %}
+
+{% block main_content %}
+{% include 'users/header.html' %}
+
+<div class="container mt-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-10">
+
+            {% for msg in messages %}
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+            <div class="alert alert-success">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            <table class="table table-bordered border-dark table-striped">
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Image</th>
+                    <th>Payment Status</th>
+                    <th>Action</th>
+                </tr>
+                {% for item in items %}
+                <tr>
+                    <td>{{item.product.product_name}}</td>
+                    <td>{{item.product.product_price}}</td>
+                    <td><img src="/{{item.product.product_image}}" alt="{{item.product.product_name}}" width="100"></td>
+                    <td>{{item.payment_status}}</td>
+                    <td>
+                        <a href="#" class="btn btn-danger" onclick="return confirm('Are you sure want to delete this item from cart?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+    </div>
+</div>
+
+{% include 'users/footer.html' %}
+{% endblock %}

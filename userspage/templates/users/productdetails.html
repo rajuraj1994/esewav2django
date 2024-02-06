@@ -1,0 +1,35 @@
+{% extends 'layouts.html' %}
+{% load static %}
+{% block title %}
+<title>{{product.product_name}}</title>
+{% endblock %}
+
+{% block main_content %}
+{% include 'users/header.html' %}
+
+<!-- start of product details section -->
+<div class="container my-4">
+    <div class="row d-flex justify-content-between align-items-center">
+        <div class="col-md-4">
+            <img src="/{{product.product_image}}" alt="{{product.product_name}}" width="500">
+        </div>
+        <div class="col-md-6">
+            <div class="card-body">
+                <h5 class="card-title">{{product.product_name}}</h5>
+                <h5>Rs {{product.product_price}}</h5>
+                <h6>Available Stock: {{product.stock}}</h6>
+                <p><strong>Category:</strong> {{product.category}}</p>
+                <p class="card-text">{{product.product_description}}</p>
+                <div class="d-flex justify-content-center mt-3">
+                    <a href="/addtocart/{{product.id}}" class="btn btn-warning">Add to Cart</a>
+                </div>
+              </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- end of product details section -->
+
+{% include 'users/footer.html' %}
+{% endblock %}

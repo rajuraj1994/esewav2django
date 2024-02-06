@@ -1,0 +1,12 @@
+.asteriskField{
+    color: red;
+}
+.card img{
+    height: 200px;
+    object-fit: cover;
+}
+
+.carousel-item img{
+    height: 600px;
+    object-fit: cover;
+}

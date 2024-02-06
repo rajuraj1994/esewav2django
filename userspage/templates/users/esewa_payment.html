@@ -1,0 +1,39 @@
+{% extends 'layouts.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+<title>Esewa Payment</title>
+{% endblock %}
+
+
+{% block main_content %}
+<div class="container">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center">
+                You are being redirect to Esewa, Please wait .....
+            </h1>
+            <div class="card" style="display:none">
+                <form action="https://uat.esewa.com.np/epay/main" method="POST" id="esewa_form">
+                    <input value="{{order.total_price}}" name="tAmt" type="hidden">
+                    <input value="{{order.total_price}}" name="amt" type="hidden">
+                    <input value="0" name="txAmt" type="hidden">
+                    <input value="0" name="psc" type="hidden">
+                    <input value="0" name="pdc" type="hidden">
+                    <input value="EPAYTEST" name="scd" type="hidden">
+                    <input value="{{order.id}}_{{cart.id}}" name="pid" type="hidden">
+                    <input value="http://127.0.0.1:8000/esewa_verify" type="hidden" name="su">
+                    <input value="{{request.build_absolute_uri}}" type="hidden" name="fu">
+                    <input value="Submit" type="submit">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    setTimeout(function(){
+        document.getElementById('esewa_form').submit()
+    },1000)
+</script>
+{% endblock %}
