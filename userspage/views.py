@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from product.forms import OrderForm
 from django.views import View
 from django.urls import reverse
+from django.http import HttpResponse
 
 
 # Create your views here.
@@ -145,11 +146,8 @@ def post_order(request,product_id,cart_id):
                 messages.add_message(request,messages.SUCCESS,'order successfull')
                 return redirect('/myorder')
             elif order.payment_method == 'Esewa':
-                context={
-                    'order':order,
-                    'cart':cart_item
-                }
-                return redirect(reverse("esewarequest") + "?o_id=" + str(order.id))
+                cart_item.delete()
+                return redirect(reverse("esewaform") + "?o_id=" + str(order.id))
             else:
                 messages.add_message(request,messages.ERROR,'failed to make an order')
                 return render(request,'users/orderform.html',{'forms':form})
@@ -198,46 +196,60 @@ def my_order(request):
         'items':items 
     }
     return render(request,'users/myorder.html',context)
-
 import hmac
 import hashlib
-import uuid
-import base64
+import uuid 
+import base64 
 
-class EsewaRequestView(View):
-    
-    def get(self, request, *args, **kwargs):
-        # Retrieve the order data and other necessary information
-        o_id = request.GET.get("o_id")
-        order = Order.objects.get(id=o_id)  # Replace with your actual model and logic
-        uuid_val = uuid.uuid4()
+
+class EsewaView(View):
+    def get(self,request,*args,**kwargs):
+        o_id=request.GET.get('o_id')
+        order=Order.objects.get(id=o_id)
+        uuid_val=uuid.uuid4()
         def genSha256(key, message):
-            key = key.encode('utf-8')
-            message = message.encode('utf-8')
+            key=key.encode('utf-8')
+            message=message.encode('utf-8')
 
-            hmac_sha256 = hmac.new(key, message, hashlib.sha256)
-            digest = hmac_sha256.digest()
-
-            signature = base64.b64encode(digest).decode('utf-8')
+            hmac_sha256=hmac.new(key,message,hashlib.sha256)
+            digest=hmac_sha256.digest()
+            signature=base64.b64encode(digest).decode('utf-8')
             return signature
-          # Replace with your eSewa secret key
-        secret_key = "8gBm/:&EnhH.1/q"
-        data_to_sign = f"total_amount={order.total_price},transaction_uuid={uuid_val},product_code=EPAYTEST"
-        result = genSha256(secret_key, data_to_sign)
-        
+        secret_key="8gBm/:&EnhH.1/q"
+        data_to_sign=f"total_amount={order.total_price},transaction_uuid={uuid_val},product_code=EPAYTEST"
+        result= genSha256(secret_key, data_to_sign)
 
-        
-        # Prepare the data dictionary
-        data = {
-            "amount": order.product.product_price,
-            "total_amount": order.total_price,
-            "transaction_uuid": uuid_val,
-            "product_code": "EPAYTEST",
-            "signature": result, 
+        data={
+            'amount':order.product.product_price,
+            'total_amount':order.total_price,
+            'transaction_uuid':uuid_val,
+            'product_code':'EPAYTEST',
+            'signature':result
         }
+        context={
+            'order':order,
+            'data':data
+        }
+        return render(request,'users/esewa.html',context)
     
-        context = {
-            "order": order,
-            "data": data,
-        }
-        return render(request, "users/esewa.html", context)
+import json
+@login_required
+def esewaVerify(request,order_id):
+   
+    if request.method == 'GET':
+        data=request.GET.get('data')
+        decoded_data=base64.b64decode(data).decode('utf-8')
+        # print(decoded_data)
+        map_data=json.loads(decoded_data)
+        # return HttpResponse(order_id)
+        order=Order.objects.get(id=order_id)
+
+        if map_data.get('status')=='COMPLETE':
+            order.payment_status=True
+            order.save()
+            messages.add_message(request,messages.SUCCESS,'payment successfull')
+            return redirect('/myorder')
+
+
+
+
