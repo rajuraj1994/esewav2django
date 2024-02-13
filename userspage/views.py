@@ -4,12 +4,12 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User 
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
-from .forms import LoginForm
+from .forms import LoginForm,ProfileUpdateForm
 from django.contrib.auth.decorators import login_required
 from product.forms import OrderForm
 from django.views import View
 from django.urls import reverse
-from django.http import HttpResponse
+
 
 
 # Create your views here.
@@ -65,7 +65,7 @@ def user_login(request):
                 if user.is_staff:
                     return redirect('/admin/dashboard')
                 else:
-                    return redirect('/')
+                    return redirect('/profile')
             else:
                 messages.add_message(request,messages.ERROR,'please provide correct credentials')
                 return render(request,'users/login.html',{'forms':form})
@@ -146,8 +146,7 @@ def post_order(request,product_id,cart_id):
                 messages.add_message(request,messages.SUCCESS,'order successfull')
                 return redirect('/myorder')
             elif order.payment_method == 'Esewa':
-                cart_item.delete()
-                return redirect(reverse("esewaform") + "?o_id=" + str(order.id))
+                return redirect(reverse("esewaform") + "?o_id=" + str(order.id)+ "&c_id=" + str(cart_item.id))
             else:
                 messages.add_message(request,messages.ERROR,'failed to make an order')
                 return render(request,'users/orderform.html',{'forms':form})
@@ -204,9 +203,14 @@ import base64
 
 class EsewaView(View):
     def get(self,request,*args,**kwargs):
+
         o_id=request.GET.get('o_id')
+        c_id=request.GET.get('c_id')
+        cart=Cart.objects.get(id=c_id)
         order=Order.objects.get(id=o_id)
+
         uuid_val=uuid.uuid4()
+
         def genSha256(key, message):
             key=key.encode('utf-8')
             message=message.encode('utf-8')
@@ -228,27 +232,55 @@ class EsewaView(View):
         }
         context={
             'order':order,
-            'data':data
+            'data':data,
+            'cart':cart
         }
         return render(request,'users/esewa.html',context)
-    
-import json
+import json   
 @login_required
-def esewaVerify(request,order_id):
-   
+def esewaVerify(request,order_id,cart_id):
     if request.method == 'GET':
         data=request.GET.get('data')
         decoded_data=base64.b64decode(data).decode('utf-8')
-        # print(decoded_data)
         map_data=json.loads(decoded_data)
-        # return HttpResponse(order_id)
         order=Order.objects.get(id=order_id)
+        cart=Cart.objects.get(id=cart_id)
 
         if map_data.get('status')=='COMPLETE':
-            order.payment_status=True
+            order.payment_status=True 
             order.save()
+            cart.delete()
             messages.add_message(request,messages.SUCCESS,'payment successfull')
             return redirect('/myorder')
+        else:
+            messages.add_message(request,messages.ERROR,'failed to make payment')
+            return redirect('/myorder')
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        form=ProfileUpdateForm(request.POST,instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request,messages.SUCCESS,'profile updated')
+            return redirect('/profile')
+        else:
+            messages.add_message(request,messages.ERROR,'failed to update profile')
+            return render(request,'users/updateprofile.html',{'forms':form})
+    
+    context={
+        'forms':ProfileUpdateForm(instance=request.user)
+    }
+    return render(request,'users/updateprofile.html',context)
+
+@login_required
+def profile(request):
+    user=User.objects.get(username=request.user)
+    context={
+        'user':user
+    }
+    return render(request,'users/profile.html',context)
+
 
 
 
