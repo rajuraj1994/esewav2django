@@ -1,0 +1,40 @@
+{% extends 'layouts.html' %}
+{% load static %}
+{% block title %}
+<title>Profile</title>
+{% endblock %}
+
+{% block main_content %}
+{% include 'users/header.html' %}
+
+<div class="container mt-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-10">
+
+            {% for msg in messages %}
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+            <div class="alert alert-success">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger">
+                {{msg}}
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            FirstName:{{user.first_name}}
+            LastName:{{user.last_name}}
+            Username:{{user.username}}
+            Email:{{user.email}}
+            <br>
+           <a href="/updateprofile" class="btn btn-warning">Update Profile</a>
+        </div>
+    </div>
+</div>
+
+{% include 'users/footer.html' %}
+{% endblock %}
